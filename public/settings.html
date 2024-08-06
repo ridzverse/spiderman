@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('airlock-1.ttf') format('truetype');
+        }
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'CustomFont', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background-color: #333;
+            border: 1px solid #444;
+            color: white;
+        }
+
+        .button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: 'CustomFont', sans-serif;
+        }
+
+        .button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Settings</h1>
+        <div class="input-group">
+            <label for="audioSource">Audio Source URL</label>
+            <input type="url" id="audioSource" placeholder="Enter audio source URL">
+        </div>
+        <div class="input-group">
+            <label for="latitude">Latitude</label>
+            <input type="text" id="latitude" placeholder="Enter latitude">
+        </div>
+        <div class="input-group">
+            <label for="longitude">Longitude</label>
+            <input type="text" id="longitude" placeholder="Enter longitude">
+        </div>
+        <button class="button" onclick="saveSettings()">Save</button>
+    </div>
+
+    <script>
+        function saveSettings() {
+            const audioSource = document.getElementById('audioSource').value;
+            const latitude = document.getElementById('latitude').value;
+            const longitude = document.getElementById('longitude').value;
+
+            if (audioSource) {
+                localStorage.setItem('audioSource', audioSource);
+            }
+
+            if (latitude && longitude) {
+                const coordinates = `${latitude},${longitude}`;
+                localStorage.setItem('coordinates', coordinates);
+            }
+
+            window.location.href = 'index.html';
+        }
+
+        // Load current settings into the input fields
+        window.onload = function() {
+            const audioSource = localStorage.getItem('audioSource');
+            const coordinates = localStorage.getItem('coordinates');
+            if (audioSource) {
+                document.getElementById('audioSource').value = audioSource;
+            }
+            if (coordinates) {
+                const [latitude, longitude] = coordinates.split(',');
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
+            }
+        }
+    </script>
+</body>
+</html>

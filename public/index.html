@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peta Kustom</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('airlock-1.ttf') format('truetype');
+        }
+
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'CustomFont', sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .map-container, .content-box, .button-container {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .map-container {
+            height: 300px;
+            border: 2px solid gray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .content-box {
+            border: 2px solid gray;
+            background-color: black;
+            margin-top: 2px;
+            display: flex;
+        }
+        
+        .box-1 {
+            height: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .box-2 {
+            height: auto;
+            padding: 5px;
+            flex-direction: column;
+        }
+
+        .play-button {
+            margin-left: 10px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: red;
+            font-family: 'CustomFont', sans-serif; /* Terapkan font kustom ke play-button */
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-top: 2px;
+            width: 100%;
+        }
+
+        .button {
+            flex: 1;
+            margin: 0 5px;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 15px;
+            font-size: 18px;
+            text-align: center;
+            font-family: 'CustomFont', sans-serif; /* Terapkan font kustom ke tombol */
+        }
+
+        .button-gray {
+            background-color: gray;
+            color: white;
+        }
+
+        .button-red {
+            background-color: red;
+            color: black;
+        }
+
+        .dashed-line {
+            border-top: 2px dashed gray;
+            width: calc(100% - 20px);
+            margin: 10px 10px;
+        }
+
+        .text-line {
+            text-align: left;
+            width: 100%;
+            font-size: 32px; /* Ukuran teks default */
+            padding: 10px;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        .text-red { color: red; }
+        .text-orange { color: orange; }
+        .text-yellow { color: yellow; }
+        .text-light-purple { color: #e79aff; }
+
+        .small-text {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Menggunakan warna dari text-line untuk street-name dan fm-frequency */
+        .text-red .street-name, .text-red .fm-frequency { color: red; }
+        .text-orange .street-name, .text-orange .fm-frequency { color: orange; }
+        .text-yellow .street-name, .text-yellow .fm-frequency { color: yellow; }
+        .text-light-purple .street-name, .text-light-purple .fm-frequency { color: #e79aff; }
+
+        .street-name {
+            font-size: 16px;
+            margin-top: 10px;
+            margin-bottom: 10px; /* Jarak bawah untuk street-name */
+        }
+
+        .fm-frequency {
+            font-size: 20px;
+            margin-top: 3px;
+        }
+
+        .timeline {
+            font-size: 16px;
+            color: white;
+            font-family: 'CustomFont', sans-serif; /* Terapkan font kustom ke timeline */
+            margin-left: 10px;
+            margin-right: auto;
+        }
+
+        .visualizer-container {
+            display: flex;
+            height: 100%;
+            justify-content: flex-end;
+            flex-grow: 1;
+            align-items: center;
+        }
+
+        .audio-visualizer {
+            height: 100%; /* Sesuaikan tinggi sesuai kebutuhan */
+            background-color: transparent;
+            position: relative; /* Atur posisi relatif */
+            left: -10px; /* Geser elemen lebih ke kiri */
+        }
+
+        @media (max-width: 600px) {
+            .text-line {
+                font-size: 28px; /* Ukuran teks untuk layar kecil */
+            }
+            .button {
+                font-size: 16px;
+                margin: 0 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+        <div class="content-box box-1">
+            <span id="timeline" class="timeline">00:00:00:000</span>
+            <audio id="audio" crossorigin="anonymous" loop></audio>
+            <button class="play-button" onclick="togglePlay()">
+                <i id="play-icon" class="fas fa-play"></i>
+            </button>
+            <div class="visualizer-container">
+                <div id="audio-motion-analyzer" class="audio-visualizer"></div>
+            </div>
+        </div>
+        <div class="content-box box-2">
+            <div class="text-line text-red">1st Precinct
+                <div class="small-text street-name">Indy, Lawrence, Speedway, Beech Grove.</div>
+                <div class="small-text fm-frequency">102.5 FM</div>
+            </div>
+            <div class="dashed-line"></div>
+            <div class="text-line text-orange">2nd Precinct
+                <div class="small-text street-name">Elm Street</div>
+                <div class="small-text fm-frequency">98.7 FM</div>
+            </div>
+            <div class="dashed-line"></div>
+            <div class="text-line text-yellow">3rd Precinct
+                <div class="small-text street-name">Oak Avenue</div>
+                <div class="small-text fm-frequency">101.3 FM</div>
+            </div>
+            <div class="dashed-line"></div>
+            <div class="text-line text-light-purple">4th Precinct
+                <div class="small-text street-name">Pine Road</div>
+                <div class="small-text fm-frequency">99.9 FM</div>
+            </div>
+        </div>
+        <div class="button-container">
+            <button class="button button-gray" onclick="window.location.href='system.html'">System</button>
+            <button class="button button-gray" onclick="window.location.href='settings.html'">Settings</button>
+            <button class="button button-red">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        var audio = document.getElementById("audio");
+        var playButton = document.querySelector(".play-button");
+        var playIcon = document.getElementById("play-icon");
+        var timeline = document.getElementById("timeline");
+        var updateInterval;
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.classList.remove("fa-play");
+                playIcon.classList.add("fa-pause");
+                updateTimeline();
+            } else {
+                audio.pause();
+                playIcon.classList.remove("fa-pause");
+                playIcon.classList.add("fa-play");
+                clearInterval(updateInterval);
+            }
+        }
+
+        function updateTimeline() {
+            updateInterval = setInterval(() => {
+                var currentTime = audio.currentTime * 1000;
+                var hours = Math.floor(currentTime / 3600000);
+                var minutes = Math.floor((currentTime % 3600000) / 60000);
+                var seconds = Math.floor((currentTime % 60000) / 1000);
+                var milliseconds = Math.floor(currentTime % 1000);
+
+                var formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(3, '0')}`;
+
+                timeline.textContent = formattedTime;
+            }, 100);
+        }
+
+        // Membuat peta
+        var map = L.map('map').setView([0, 0], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+        }).addTo(map);
+
+        function updateMapPosition(lat, lon) {
+            map.setView([lat, lon], 13);
+            marker.setLatLng([lat, lon]);
+        }
+        // Menghapus kontrol zoom jika tetap ada
+        map.zoomControl.remove();
+        // Load audio source and coordinates from localStorage
+        const audioSource = localStorage.getItem('audioSource') || 'https://prod-54-162-160-114.amperwave.net/foxnewsradio-foxnewsradioaac-imc';
+        const coordinates = localStorage.getItem('coordinates') || '0,0';
+        const [latitude, longitude] = coordinates.split(',').map(coord => parseFloat(coord));
+
+        audio.src = audioSource;
+        updateMapPosition(latitude, longitude);
+    </script>
+    <script type="module">
+        import AudioMotionAnalyzer from "https://cdn.skypack.dev/audiomotion-analyzer?min";
+
+        // Create an AudioContext
+        const audioContext = new AudioContext();
+
+        // Get the audio element
+        const audioElements = document.getElementsByTagName('audio');
+
+        // Instantiate analyzer
+        const audioMotion = new AudioMotionAnalyzer(
+            document.getElementById("audio-motion-analyzer"),
+            {
+                height: 20,
+                ansiBands: false,
+                showScaleX: false,
+                bgAlpha: 0,
+                overlay: true,
+                mode: 10,
+                frequencyScale: "log",
+                showPeaks: false,
+                reflexRatio: 0.5,
+                reflexAlpha: 1,
+                reflexBright: 1,
+                smoothing: 0.7
+            }
+        );
+
+        // Daftarkan gradien merah
+        audioMotion.registerGradient('redGradient', {
+            colorStops: [
+                'hsl(0, 100%, 50%)', // Merah
+                { color: 'red', pos: 1 } // Merah gelap
+            ]
+        });
+
+        // Atur gradien yang digunakan
+        audioMotion.gradient = 'redGradient';
+
+        // Connect the analyzer to the audio element
+        audioMotion.connectInput(audioElements[0]);
+
+        // Tambahkan atribut crossorigin ke elemen audio
+        audioElements[0].setAttribute('crossorigin', 'anonymous');
+    </script>
+</body>
+</html>
